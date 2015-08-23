@@ -1,6 +1,7 @@
 package util.camera;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.hardware.Camera;
 import android.os.Environment;
 import android.os.Message;
@@ -24,25 +25,30 @@ import android.os.Handler;
 public class PreviewCallback implements Camera.PreviewCallback {
     Context mContext;
     Handler mHandler;
+    Rect mRect;
     public void setContext(Context context) {
         mContext = context;
     }
     public void setHandler(Handler handler) {
         mHandler = handler;
     }
+    public void setRect(Rect rect) {
+        mRect = rect;
+    }
+    private void dumpPreview(byte[] data){
+        String filename = Environment.getExternalStorageDirectory() + "/code/dump.yuv";
+        try {
+            FileOutputStream fo = new FileOutputStream(new File(filename));
+            fo.write(data);
+            fo.close();
+        }catch (Exception ex){
+            ex.printStackTrace();
+        }
+    }
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
         //Log.e("Camera","preview " + data[0]);
         decode(data, 640, 480);
-        String filename = Environment.getExternalStorageDirectory() + "/code/dump.yuv";
-//        try {
-//            FileOutputStream fo = new FileOutputStream(new File(filename));
-//            fo.write(data);
-//            fo.close();
-//        }catch (Exception ex){
-//            ex.printStackTrace();
-//        }
-
     }
 
     Toast t = null;
@@ -52,8 +58,8 @@ public class PreviewCallback implements Camera.PreviewCallback {
         //  Log.e("barcode","decode");
         Result rawResult = null;
         MultiFormatReader multiFormatReader = new MultiFormatReader();
-        PlanarYUVLuminanceSource source = new PlanarYUVLuminanceSource(data, width, height, 10, 10,
-                310, 210, false);
+        PlanarYUVLuminanceSource source = new PlanarYUVLuminanceSource(data, width, height, mRect.left, mRect.top,
+                mRect.right, mRect.bottom, false);
         if (source != null) {
             BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
             try {

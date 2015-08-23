@@ -13,6 +13,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.hardware.Camera;
 import android.os.Environment;
 import android.util.AttributeSet;
@@ -42,6 +43,12 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
     Handler mHandler;
 
     PreviewCallback previewCallback = new PreviewCallback();
+    int width = 640;
+    int height = 480;
+    int scan_width = 300;
+    int scan_height = 200;
+
+    Rect rect = new Rect();
     private void initSurface(Context context){
         mHolder = getHolder();
         mHolder.addCallback(this);
@@ -52,6 +59,11 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
 
         angle = 0;
 
+        rect.top = height/2 - scan_height/2;
+        rect.left = width/2 - scan_width/2;
+        rect.bottom = height/2 + scan_height/2;
+        rect.right = width/2 + scan_width/2;
+        previewCallback.setRect(rect);
     }
     public CameraSurfacePreview(Context context){
         super(context);
@@ -161,7 +173,7 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
         Paint paint = new Paint();
         paint.setColor(Color.GREEN);
 
-        canvas.drawLine(0 , 240 , 640, 240, paint);
+        //canvas.drawLine(0 , 240 , 640, 240, paint);
 
         int lineLen = 1280;
 //        double start_x = 360 * Math.cos((180 + angle)*Math.PI/180);
@@ -180,7 +192,7 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
         }*/
         paint.setStyle(Paint.Style.STROKE);
         //canvas.drawRect(10f,10f,410f,310f,paint);
-        canvas.drawRect(10f,10f,310f,210f,paint);
+        canvas.drawRect(rect,paint);
         invalidate();
     }
     public void setLineAngle(int angle){
