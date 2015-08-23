@@ -146,6 +146,8 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
 
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
+        Log.e(TAG,"surfaceDestroyed");
+        mCamera.setPreviewCallback(null);
         mCamera.stopPreview();
         mCamera.release();
         //return true;
