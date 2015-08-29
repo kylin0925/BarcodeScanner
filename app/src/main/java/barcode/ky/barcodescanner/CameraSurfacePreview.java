@@ -49,6 +49,16 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
     int scan_height = 200;
 
     Rect rect = new Rect();
+    public Camera getCamera(){
+        return mCamera;
+    }
+    public void stopPreview(){
+        mCamera.stopPreview();
+    }
+    public void startPreview(){
+        mCamera.setPreviewCallback(previewCallback);
+        mCamera.startPreview();
+    }
     private void initSurface(Context context){
         mHolder = getHolder();
         mHolder.addCallback(this);

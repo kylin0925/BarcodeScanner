@@ -15,8 +15,13 @@ import com.google.zxing.ReaderException;
 import com.google.zxing.Result;
 import com.google.zxing.common.HybridBinarizer;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
+
 import android.os.Handler;
 
 /**
@@ -47,8 +52,9 @@ public class PreviewCallback implements Camera.PreviewCallback {
     }
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
-        //Log.e("Camera","preview " + data[0]);
+        Log.e("PreviewCallback","preview " + data[0]);
         decode(data, 640, 480);
+        Log.e("PreviewCallback", "decode end ");
     }
 
     Toast t = null;
@@ -63,16 +69,18 @@ public class PreviewCallback implements Camera.PreviewCallback {
         if (source != null) {
             BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
             try {
+                Log.e("PreviewCallback","multiFormatReader.decodeWithState(bitmap) ");
                 rawResult = multiFormatReader.decodeWithState(bitmap);
             } catch (ReaderException re) {
+                Log.e("PreviewCallback","ReaderException " + re.toString());
                 // continue
             } finally {
                 multiFormatReader.reset();
             }
         }
-
+        Log.e("PreviewCallback","rawResult");
         if (rawResult != null) {
-            Log.e("barcode", " " + rawResult);
+            Log.e("PreviewCallback", " " + rawResult);
             if (t != null) {
                 t.cancel();
             }
@@ -82,7 +90,9 @@ public class PreviewCallback implements Camera.PreviewCallback {
             message.arg1 = 123;
             message.obj = rawResult.toString();
             mHandler.sendMessage(message);
+            //sentBarcode(rawResult.toString());
         }
 
     }
+
 }
