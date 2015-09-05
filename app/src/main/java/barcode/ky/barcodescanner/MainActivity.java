@@ -1,5 +1,7 @@
 package barcode.ky.barcodescanner;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.hardware.Camera;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
@@ -12,6 +14,7 @@ import android.view.MenuItem;
 import android.os.Handler;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -27,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
     String oldbarcode="";
     Camera camera;
     CameraSurfacePreview cameraSurfacePreview;
+    SharedPreferences sharedPreferences;
     Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -60,6 +64,10 @@ public class MainActivity extends AppCompatActivity {
                 cameraSurfacePreview.startPreview();
             }
         });
+        sharedPreferences = getSharedPreferences("IP",0);
+        String ip = sharedPreferences.getString("IP","");
+        TextView txtIP = (TextView)findViewById(R.id.txtIp);
+        txtIP.setText(ip);
     }
 
     @Override
@@ -78,6 +86,9 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Intent intent = new Intent(this,IpSetting.class);
+
+            startActivity(intent);
             return true;
         }
 
@@ -102,6 +113,7 @@ public class MainActivity extends AppCompatActivity {
 
                     int bytesRead;
                     InputStream inputStream = socket.getInputStream();
+
                     Log.e("client","read ");
                     /*while ((bytesRead = inputStream.read(buffer)) != -1){
                         byteArrayOutputStream.write(buffer, 0, bytesRead);
@@ -114,7 +126,15 @@ public class MainActivity extends AppCompatActivity {
 
                     //Log.e("clicent","response ->" + response);
                 }catch (Exception ex){
-                    Log.e("client","read " + ex.toString());
+                    Log.e("client", "read " + ex.toString());
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast t = Toast.makeText(MainActivity.this, "socket error ", Toast.LENGTH_SHORT);
+                            t.show();
+                        }
+                    });
+
                     ex.printStackTrace();
                 }finally {
                     if(socket !=null){
