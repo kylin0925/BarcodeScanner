@@ -13,6 +13,7 @@ import android.view.MenuItem;
 
 import android.os.Handler;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,24 +29,42 @@ public class MainActivity extends AppCompatActivity {
 
     TextView txtBarcode;
     String oldbarcode="";
+    Button btnConnect;
+
     Camera camera;
     CameraSurfacePreview cameraSurfacePreview;
     SharedPreferences sharedPreferences;
+    Socket socket;
+    String response = "";
+    String dstAddress = "192.168.1.107";
+    int dstPort = 9999;
+
     Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             Log.e(TAG, "msg " + msg.obj + " " + oldbarcode);
-            txtBarcode.setText(msg.obj.toString());
-             {
-                Log.e(TAG, "send msg " );
-                sentBarcode(msg.obj.toString());
-                oldbarcode = msg.obj.toString();
-                cameraSurfacePreview.stopPreview();
+            if(msg.arg1 == 123) {
+                txtBarcode.setText(msg.obj.toString());
+                {
+                    Log.e(TAG, "send msg ");
+                    sentBarcode(msg.obj.toString());
+                    oldbarcode = msg.obj.toString();
+                    cameraSurfacePreview.stopPreview();
+                }
+            }else if(msg.arg1 == 1){
+                btnConnect.setText(msg.obj.toString());
             }
 
         }
     };
+
+    void sendHandlerMsg(int id,String msg){
+        Message message = new Message();
+        message.arg1 = id;
+        message.obj = msg;
+        handler.sendMessage(message);
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,6 +87,36 @@ public class MainActivity extends AppCompatActivity {
         String ip = sharedPreferences.getString("IP","");
         TextView txtIP = (TextView)findViewById(R.id.txtIp);
         txtIP.setText(ip);
+
+        btnConnect = (Button)findViewById(R.id.btnConnect);
+        btnConnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sendHandlerMsg(1,"connecting");
+                Thread thread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            socket = new Socket(dstAddress, dstPort);
+                            sendHandlerMsg(1,"connect");
+                        }catch (Exception ex){
+                            Log.e("client", "read " + ex.toString());
+                            sendHandlerMsg(1,"connect failed");
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast t = Toast.makeText(MainActivity.this, "socket error ", Toast.LENGTH_SHORT);
+                                    t.show();
+                                }
+                            });
+
+                            ex.printStackTrace();
+                        }
+                    }
+                });
+                thread.start();
+            }
+        });
     }
 
     @Override
@@ -95,17 +144,19 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    Socket socket;
-    String response = "";
-    String dstAddress = "192.168.1.107";
-    int dstPort = 9999;
+
     void sentBarcode(final String barcode){
+        if(socket == null || socket.isConnected() == false) {
+            Log.e(TAG,"RETURN ");
+            return;
+        }
+
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 Log.e("client","socket client " + dstAddress + "  " + dstPort);
                 try {
-                    socket = new Socket(dstAddress, dstPort);
+                    //socket = new Socket(dstAddress, dstPort);
                     ByteArrayOutputStream byteArrayOutputStream =
                             new ByteArrayOutputStream(1024);
 

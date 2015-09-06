@@ -52,9 +52,9 @@ public class PreviewCallback implements Camera.PreviewCallback {
     }
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
-        Log.e("PreviewCallback","preview " + data[0]);
+       // Log.e("PreviewCallback","preview " + data[0]);
         decode(data, 640, 480);
-        Log.e("PreviewCallback", "decode end ");
+       // Log.e("PreviewCallback", "decode end ");
     }
 
     Toast t = null;
@@ -69,18 +69,18 @@ public class PreviewCallback implements Camera.PreviewCallback {
         if (source != null) {
             BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
             try {
-                Log.e("PreviewCallback","multiFormatReader.decodeWithState(bitmap) ");
+                //Log.e("PreviewCallback","multiFormatReader.decodeWithState(bitmap) ");
                 rawResult = multiFormatReader.decodeWithState(bitmap);
             } catch (ReaderException re) {
-                Log.e("PreviewCallback","ReaderException " + re.toString());
+                //Log.e("PreviewCallback","ReaderException " + re.toString());
                 // continue
             } finally {
                 multiFormatReader.reset();
             }
         }
-        Log.e("PreviewCallback","rawResult");
+        //Log.e("PreviewCallback","rawResult");
         if (rawResult != null) {
-            Log.e("PreviewCallback", " " + rawResult);
+            //Log.e("PreviewCallback", " " + rawResult);
             if (t != null) {
                 t.cancel();
             }
