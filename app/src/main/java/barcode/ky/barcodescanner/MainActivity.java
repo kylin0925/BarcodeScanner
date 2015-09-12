@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
     TextView txtBarcode;
     String oldbarcode="";
     Button btnConnect;
-
+    Button btnDisconnect;
     Camera camera;
     CameraSurfacePreview cameraSurfacePreview;
     SharedPreferences sharedPreferences;
@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
                     oldbarcode = msg.obj.toString();
                     cameraSurfacePreview.stopPreview();
                 }
-            }else if(msg.arg1 == 1){
+            }else if(msg.arg1 == 1 || msg.arg1 == 2){
                 btnConnect.setText(msg.obj.toString());
             }
 
@@ -64,6 +64,43 @@ public class MainActivity extends AppCompatActivity {
         message.arg1 = id;
         message.obj = msg;
         handler.sendMessage(message);
+    }
+    void sockConnect(){
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    socket = new Socket(dstAddress, dstPort);
+                    sendHandlerMsg(1,"connect");
+                }catch (Exception ex){
+                    Log.e(TAG, "read " + ex.toString());
+                    sendHandlerMsg(1,"connect failed");
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast t = Toast.makeText(MainActivity.this, "socket error ", Toast.LENGTH_SHORT);
+                            t.show();
+                        }
+                    });
+
+                    ex.printStackTrace();
+                }
+            }
+        });
+        thread.start();
+    }
+    void sockDisconnect(){
+        if(socket !=null){
+            try {
+                Log.e(TAG,"socket close ");
+                socket.close();
+                sendHandlerMsg(2,"disconnect");
+            }catch (Exception ex){
+                Log.e(TAG,"socket close " + ex.toString());
+                ex.printStackTrace();
+            }
+
+        }
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,28 +130,16 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 sendHandlerMsg(1,"connecting");
-                Thread thread = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            socket = new Socket(dstAddress, dstPort);
-                            sendHandlerMsg(1,"connect");
-                        }catch (Exception ex){
-                            Log.e("client", "read " + ex.toString());
-                            sendHandlerMsg(1,"connect failed");
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Toast t = Toast.makeText(MainActivity.this, "socket error ", Toast.LENGTH_SHORT);
-                                    t.show();
-                                }
-                            });
+                sockConnect();
+            }
+        });
 
-                            ex.printStackTrace();
-                        }
-                    }
-                });
-                thread.start();
+        btnDisconnect = (Button)findViewById(R.id.btnDisConnect);
+        btnDisconnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(socket.isConnected())
+                    sockDisconnect();
             }
         });
     }
@@ -154,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                Log.e("client","socket client " + dstAddress + "  " + dstPort);
+                Log.e(TAG,"socket client " + dstAddress + "  " + dstPort);
                 try {
                     //socket = new Socket(dstAddress, dstPort);
                     ByteArrayOutputStream byteArrayOutputStream =
@@ -165,19 +190,19 @@ public class MainActivity extends AppCompatActivity {
                     int bytesRead;
                     InputStream inputStream = socket.getInputStream();
 
-                    Log.e("client","read ");
+                    Log.e(TAG,"read ");
                     /*while ((bytesRead = inputStream.read(buffer)) != -1){
                         byteArrayOutputStream.write(buffer, 0, bytesRead);
                         response += byteArrayOutputStream.toString("UTF-8");
                         Log.e("clicent","response " + response);
                     }*/
-                    Log.e("client","send barcode " + barcode);
+                    Log.e(TAG,"send barcode " + barcode);
                     OutputStream of = socket.getOutputStream();
                     of.write(barcode.getBytes());
 
                     //Log.e("clicent","response ->" + response);
                 }catch (Exception ex){
-                    Log.e("client", "read " + ex.toString());
+                    Log.e(TAG, "read " + ex.toString());
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -187,17 +212,6 @@ public class MainActivity extends AppCompatActivity {
                     });
 
                     ex.printStackTrace();
-                }finally {
-                    if(socket !=null){
-                        try {
-                            Log.e("client","socket close ");
-                            socket.close();
-                        }catch (Exception ex){
-                            Log.e("client","socket close " + ex.toString());
-                            ex.printStackTrace();
-                        }
-
-                    }
                 }
             }
         });
