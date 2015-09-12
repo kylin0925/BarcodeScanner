@@ -111,22 +111,7 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
             Log.e(TAG, "preview size " + parameters1.getPreviewSize().width + " " + parameters1.getPreviewSize().height);
             mCamera.setPreviewCallback(previewCallback);
 
-//            mCamera.setPreviewCallback(new Camera.PreviewCallback() {
-//                @Override
-//                public void onPreviewFrame(byte[] data, Camera camera) {
-//                    //Log.e("Camera","preview " + data[0]);
-//                    decode(data, 640, 480);
-//                    String filename = Environment.getExternalStorageDirectory() + "/code/dump.yuv";
-//                    try {
-//                        FileOutputStream fo = new FileOutputStream(new File(filename));
-//                        fo.write(data);
-//                        fo.close();
-//                    }catch (Exception ex){
-//                        ex.printStackTrace();
-//                    }
-//
-//                }
-//            });
+
             mCamera.startPreview();
         }catch (Exception ioe){
 
@@ -183,25 +168,9 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
         Paint paint = new Paint();
         paint.setColor(Color.GREEN);
 
-        //canvas.drawLine(0 , 240 , 640, 240, paint);
-
         int lineLen = 1280;
-//        double start_x = 360 * Math.cos((180 + angle)*Math.PI/180);
-//        double start_y = 360 * Math.sin((180 + angle)*Math.PI/180);
-//
-//        double end_x = 360 * Math.cos(angle*Math.PI/180);
-//        double end_y = 360 * Math.sin(angle*Math.PI/180);
         paint.setColor(Color.YELLOW);
-//        canvas.drawLine(640 + (int) start_x, 360 - (int) start_y, 640 + (int) end_x, 360 - (int) end_y, paint);
-        //Log.e(TAG,"draw x " + end_x + " y " + end_y);
-
-        /*try{
-           Canvas c = mHolder.lockCanvas();
-        }catch (Exception e){
-            Log.e(TAG,"error");
-        }*/
         paint.setStyle(Paint.Style.STROKE);
-        //canvas.drawRect(10f,10f,410f,310f,paint);
         canvas.drawRect(rect,paint);
         invalidate();
     }
