@@ -13,6 +13,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.hardware.Camera;
 import android.os.Environment;
@@ -43,8 +44,8 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
     Handler mHandler;
 
     PreviewCallback previewCallback = new PreviewCallback();
-    int width = 640;
-    int height = 480;
+    int width = 1280;
+    int height = 720;
     int scan_width = 300;
     int scan_height = 200;
 
@@ -74,6 +75,7 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
         rect.bottom = height/2 + scan_height/2;
         rect.right = width/2 + scan_width/2;
         previewCallback.setRect(rect);
+        previewCallback.setPreviewSize(new Point(width,height));
     }
     public CameraSurfacePreview(Context context){
         super(context);
@@ -85,7 +87,7 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
         initSurface(context);
     }
     public CameraSurfacePreview(Context context,AttributeSet attrs){
-        super(context,attrs);
+        super(context, attrs);
         initSurface(context);
     }
     @Override
@@ -98,7 +100,7 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
         int h = preSize.height;
         int w = preSize.width;
         Log.e(TAG, "h " + h + " w " + w);
-        parameters.setPreviewSize(640, 480);
+        parameters.setPreviewSize(width, height);
         mCamera.setParameters(parameters);
         try{
             //mCamera.setPreviewTexture(surfaceTexture);
@@ -117,35 +119,35 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
 
         }
     }
-    Toast t= null;
-    private void decode(byte[] data, int width, int height) {
-        long start = System.currentTimeMillis();
-      //  Log.e("barcode","decode");
-        Result rawResult = null;
-        MultiFormatReader multiFormatReader = new MultiFormatReader();
-        PlanarYUVLuminanceSource source =new PlanarYUVLuminanceSource(data, width, height, 10,10,
-                310, 210, false);
-        if (source != null) {
-            BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
-            try {
-                rawResult = multiFormatReader.decodeWithState(bitmap);
-            } catch (ReaderException re) {
-                // continue
-            } finally {
-                multiFormatReader.reset();
-            }
-        }
-
-        if(rawResult !=null){
-            Log.e("barcode", " " + rawResult);
-            if(t != null) {
-                t.cancel();
-            }
-            t = Toast.makeText(mContex, "barcode " + rawResult, Toast.LENGTH_SHORT);
-            t.show();
-        }
-
-    }
+//    Toast t= null;
+//    private void decode(byte[] data, int width, int height) {
+//        long start = System.currentTimeMillis();
+//      //  Log.e("barcode","decode");
+//        Result rawResult = null;
+//        MultiFormatReader multiFormatReader = new MultiFormatReader();
+//        PlanarYUVLuminanceSource source =new PlanarYUVLuminanceSource(data, width, height, 10,10,
+//                310, 210, false);
+//        if (source != null) {
+//            BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
+//            try {
+//                rawResult = multiFormatReader.decodeWithState(bitmap);
+//            } catch (ReaderException re) {
+//                // continue
+//            } finally {
+//                multiFormatReader.reset();
+//            }
+//        }
+//
+//        if(rawResult !=null){
+//            Log.e("barcode", " " + rawResult);
+//            if(t != null) {
+//                t.cancel();
+//            }
+//            t = Toast.makeText(mContex, "barcode " + rawResult, Toast.LENGTH_SHORT);
+//            t.show();
+//        }
+//
+//    }
     @Override
     public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i2, int i3) {
 

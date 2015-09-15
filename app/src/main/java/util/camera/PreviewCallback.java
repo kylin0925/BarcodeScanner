@@ -1,6 +1,7 @@
 package util.camera;
 
 import android.content.Context;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.hardware.Camera;
 import android.os.Environment;
@@ -31,6 +32,7 @@ public class PreviewCallback implements Camera.PreviewCallback {
     Context mContext;
     Handler mHandler;
     Rect mRect;
+    Point mPreivewSize;
     public void setContext(Context context) {
         mContext = context;
     }
@@ -39,6 +41,9 @@ public class PreviewCallback implements Camera.PreviewCallback {
     }
     public void setRect(Rect rect) {
         mRect = rect;
+    }
+    public void setPreviewSize(Point p){
+        mPreivewSize = p;
     }
     private void dumpPreview(byte[] data){
         String filename = Environment.getExternalStorageDirectory() + "/code/dump.yuv";
@@ -53,7 +58,7 @@ public class PreviewCallback implements Camera.PreviewCallback {
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
        // Log.e("PreviewCallback","preview " + data[0]);
-        decode(data, 640, 480);
+        decode(data, mPreivewSize.x, mPreivewSize.y);
        // Log.e("PreviewCallback", "decode end ");
     }
 

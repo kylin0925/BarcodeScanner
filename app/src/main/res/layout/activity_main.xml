@@ -15,8 +15,8 @@
         android:layout_row="0">
 
         <barcode.ky.barcodescanner.CameraSurfacePreview
-            android:layout_width="640px"
-            android:layout_height="480px"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:id="@+id/surfaceView"
             />
     </LinearLayout>
