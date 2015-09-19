@@ -1,5 +1,6 @@
 package barcode.ky.barcodescanner;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Point;

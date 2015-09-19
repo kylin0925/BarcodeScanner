@@ -60,6 +60,7 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
         mCamera.setPreviewCallback(previewCallback);
         mCamera.startPreview();
     }
+
     private void initSurface(Context context){
         mHolder = getHolder();
         mHolder.addCallback(this);
