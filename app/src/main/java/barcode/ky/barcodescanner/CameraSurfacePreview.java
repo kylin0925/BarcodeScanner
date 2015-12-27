@@ -19,13 +19,18 @@ import android.hardware.Camera;
 import android.os.Environment;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.jar.Attributes;
 
 import android.os.Handler;
@@ -34,7 +39,7 @@ import util.camera.PreviewCallback;
 /**
  * Created by kylin on 15/1/4.
  */
-public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.Callback {
+public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.Callback, View.OnTouchListener  {
 
     private SurfaceHolder mHolder;
     private Camera mCamera;
@@ -48,7 +53,7 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
     int height = 720;
     int scan_width = 300;
     int scan_height = 200;
-
+    ScaleGestureDetector scaleGestur;
     Rect rect = new Rect();
     public Camera getCamera(){
         return mCamera;
@@ -60,7 +65,11 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
         mCamera.setPreviewCallback(previewCallback);
         mCamera.startPreview();
     }
+    private void setPreviewSize(){
+        Camera.Parameters parameters = mCamera.getParameters();
+        List<Camera.Size> supportedPictureSizes = parameters.getSupportedPictureSizes();
 
+    }
     private void initSurface(Context context){
         mHolder = getHolder();
         mHolder.addCallback(this);
@@ -76,7 +85,11 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
         rect.bottom = height/2 + scan_height/2;
         rect.right = width/2 + scan_width/2;
         previewCallback.setRect(rect);
-        previewCallback.setPreviewSize(new Point(width,height));
+        previewCallback.setPreviewSize(new Point(width, height));
+
+        this.setOnTouchListener(this);
+
+        scaleGestur = new ScaleGestureDetector(context,scaleGestureDetector);
     }
     public CameraSurfacePreview(Context context){
         super(context);
@@ -101,8 +114,14 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
         int h = preSize.height;
         int w = preSize.width;
         Log.e(TAG, "h " + h + " w " + w);
+
+        Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
+        Camera.getCameraInfo(0,cameraInfo);
+        Log.i(TAG, "cameraInfo.orientation  " + cameraInfo.orientation);
+
         parameters.setPreviewSize(width, height);
         mCamera.setParameters(parameters);
+        mCamera.setDisplayOrientation(cameraInfo.orientation - 90);
         try{
             //mCamera.setPreviewTexture(surfaceTexture);
             setWillNotDraw(false);
@@ -156,7 +175,7 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
 
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-        Log.e(TAG,"surfaceDestroyed");
+        Log.e(TAG, "surfaceDestroyed");
         mCamera.setPreviewCallback(null);
         mCamera.stopPreview();
         mCamera.release();
@@ -167,7 +186,7 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
         //landscape
         // w 1280 h 720
         //super.draw(canvas);
-
+        Log.e(TAG,"onDraw " + rect.top + " " + rect.bottom);
         Paint paint = new Paint();
         paint.setColor(Color.GREEN);
 
@@ -185,4 +204,56 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
         mHandler = handler;
         previewCallback.setHandler(mHandler);
     }
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        Log.e(TAG, "onTouch");
+        boolean handled = scaleGestur.onTouchEvent(event);
+        return false;
+    }
+    float beginx = 0,beginy = 0;
+    int vw=400,vh=400;
+    ScaleGestureDetector.OnScaleGestureListener scaleGestureDetector = new ScaleGestureDetector.SimpleOnScaleGestureListener(){
+        @Override
+        public boolean onScale(ScaleGestureDetector detector) {
+            //return super.onScale(detector);
+            Log.e(TAG,"onScale " + detector.getScaleFactor());
+            return false;
+        }
+
+        @Override
+        public boolean onScaleBegin(ScaleGestureDetector detector) {
+            Log.e(TAG,"onScale begin " + detector.getCurrentSpanX() + " " + detector.getCurrentSpanY());
+            beginx = detector.getCurrentSpanX();
+            beginy = detector.getCurrentSpanY();
+            return super.onScaleBegin(detector);
+        }
+
+        @Override
+        public void onScaleEnd(ScaleGestureDetector detector) {
+            //Log.e(TAG,"onScale end " + detector.getCurrentSpanX() + " " + detector.getCurrentSpanY() );
+            Log.e(TAG, "onScale end x y" + beginx / detector.getCurrentSpanX() + " " + beginy / detector.getCurrentSpanY());
+
+            //vw =(int) (vw * beginx / (float)(detector.getCurrentSpanX()));
+            //vh =(int) (vh * beginy / (float)(detector.getCurrentSpanY()));
+
+            //width*= beginx / (float)(detector.getCurrentSpanX());
+            //height*= beginy / (float)(detector.getCurrentSpanY());
+
+            scan_width*=  (float)(detector.getCurrentSpanX()) / beginx ;
+            scan_height*= (float)(detector.getCurrentSpanY()) / beginy;
+
+            rect.top = height/2 - scan_height/2;
+            rect.left = width/2 - scan_width/2;
+            rect.bottom = height/2 + scan_height/2;
+            rect.right = width/2 + scan_width/2;
+
+//            rect.top -=10;
+//            rect.left --;
+//            rect.bottom --;
+//            rect.right --;
+            super.onScaleEnd(detector);
+        }
+
+    };
 }

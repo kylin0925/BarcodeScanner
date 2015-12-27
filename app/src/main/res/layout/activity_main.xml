@@ -17,6 +17,7 @@
             android:layout_height="fill_parent"
             android:id="@+id/surfaceView"
             />
+
     </LinearLayout>
     <LinearLayout
         android:layout_width="fill_parent"
@@ -26,7 +27,11 @@
         android:layout_column="0"
         android:gravity="bottom">
 
-
+        <barcode.ky.barcodescanner.RangeView
+            android:layout_width="400px"
+            android:layout_height="400px"
+            android:id="@+id/rangeView"
+            android:background="#ffbd8c" />
         <TextView android:text="IP" android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/txtIp"
