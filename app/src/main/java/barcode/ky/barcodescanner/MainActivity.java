@@ -3,6 +3,7 @@ package barcode.ky.barcodescanner;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Point;
 import android.hardware.Camera;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
@@ -39,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
     String response = "";
     String dstAddress = "192.168.1.107";
     int dstPort = 9999;
-
+    RangeView rangeView;
     Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -126,6 +127,7 @@ public class MainActivity extends AppCompatActivity {
                 cameraSurfacePreview.startPreview();
             }
         });
+
         sharedPreferences = getSharedPreferences("IP",0);
         String ip = sharedPreferences.getString("IP","");
         TextView txtIP = (TextView)findViewById(R.id.txtIp);
@@ -148,6 +150,12 @@ public class MainActivity extends AppCompatActivity {
                     sockDisconnect();
             }
         });
+
+        Point point = new Point();
+        this.getWindowManager().getDefaultDisplay().getSize(point);
+        Log.e(TAG, "size " + point);
+        rangeView = (RangeView)findViewById(R.id.rangeView);
+        cameraSurfacePreview.setRangeView(rangeView);
     }
 
     @Override

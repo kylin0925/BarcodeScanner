@@ -13,9 +13,10 @@
         android:layout_row="0">
 
         <barcode.ky.barcodescanner.CameraSurfacePreview
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
+            android:layout_width="1280px"
+            android:layout_height="720px"
             android:id="@+id/surfaceView"
+
             />
 
     </LinearLayout>
@@ -28,10 +29,10 @@
         android:gravity="bottom">
 
         <barcode.ky.barcodescanner.RangeView
-            android:layout_width="400px"
+            android:layout_width="600px"
             android:layout_height="400px"
             android:id="@+id/rangeView"
-            android:background="#ffbd8c" />
+            android:background="#00ffbd8c" />
         <TextView android:text="IP" android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/txtIp"

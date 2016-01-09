@@ -53,8 +53,10 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
     int height = 720;
     int scan_width = 300;
     int scan_height = 200;
+    int radius = 25;
     ScaleGestureDetector scaleGestur;
     Rect rect = new Rect();
+    RangeView custview;
     public Camera getCamera(){
         return mCamera;
     }
@@ -65,6 +67,7 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
         mCamera.setPreviewCallback(previewCallback);
         mCamera.startPreview();
     }
+    public void setRangeView(RangeView r) {custview = r; previewCallback.setRangeView(custview);}
     private void setPreviewSize(){
         Camera.Parameters parameters = mCamera.getParameters();
         List<Camera.Size> supportedPictureSizes = parameters.getSupportedPictureSizes();
@@ -90,6 +93,7 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
         this.setOnTouchListener(this);
 
         scaleGestur = new ScaleGestureDetector(context,scaleGestureDetector);
+        Point screenSize = new Point();
     }
     public CameraSurfacePreview(Context context){
         super(context);
@@ -186,14 +190,20 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
         //landscape
         // w 1280 h 720
         //super.draw(canvas);
-        Log.e(TAG,"onDraw " + rect.top + " " + rect.bottom);
+       // Log.e(TAG,"onDraw " + rect.top + " " + rect.bottom);
         Paint paint = new Paint();
         paint.setColor(Color.GREEN);
 
-        int lineLen = 1280;
+        //int lineLen = 1280;
         paint.setColor(Color.YELLOW);
         paint.setStyle(Paint.Style.STROKE);
-        canvas.drawRect(rect,paint);
+        canvas.drawRect(rect, paint);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(Color.BLUE);
+        canvas.drawCircle(rect.left,rect.top, radius,paint);
+        canvas.drawCircle(rect.right,rect.bottom,radius,paint);
+
+
         invalidate();
     }
     public void setLineAngle(int angle){
@@ -204,11 +214,61 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
         mHandler = handler;
         previewCallback.setHandler(mHandler);
     }
+    boolean isOnTouch = false;
+    int checkInPoints(Rect rect,float x,float y,int radius){
+        Point[] point = new Point[4];
+        point[0] = new Point();
+        point[0].x = rect.left;
+        point[0].y = rect.top;
 
+        point[1] = new Point();
+        point[1].x = rect.right;
+        point[1].y = rect.top;
+
+        point[2] = new Point();
+        point[2].x = rect.right;
+        point[2].y = rect.bottom;
+
+        point[3] = new Point();
+        point[3].x = rect.left;
+        point[3].y = rect.bottom;
+
+        for(int i = 0; i < 4;i++) {
+            float dx = Math.abs(x - point[i].x);
+            float dy = Math.abs(y - point[i].y);
+
+            dx = dx * dx;
+            dy = dy * dy;
+            if (dx + dy <= radius * radius) {
+                Log.e(TAG, "Touch in circle " + i);
+                return i;
+            }
+        }
+        return -1;
+    }
+    void moveRect(Rect rect ){
+        Log.e(TAG, "move Rect " +  rect.left );
+        if(rect.left >10)
+            rect.left -=10;
+    }
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-        Log.e(TAG, "onTouch");
-        boolean handled = scaleGestur.onTouchEvent(event);
+        Log.e(TAG, "onTouch " + event.getAction());
+        if(event.getAction() == MotionEvent.ACTION_DOWN){
+            Log.e(TAG, "onTouch down " + event.getX() + " " + event.getY());
+            int res = checkInPoints( rect,event.getX(),event.getY(),radius);
+
+            if(res != -1){
+                isOnTouch = true;
+            }
+        }else if(event.getAction() == MotionEvent.ACTION_UP) {
+            Log.e(TAG, "onTouch up " + event.getX() + " " + event.getY());
+            isOnTouch = false;
+        }else if(event.getAction() == MotionEvent.ACTION_MOVE){
+            if(isOnTouch == true)
+                moveRect(rect);
+        }
+        //boolean handled = scaleGestur.onTouchEvent(event);
         return false;
     }
     float beginx = 0,beginy = 0;

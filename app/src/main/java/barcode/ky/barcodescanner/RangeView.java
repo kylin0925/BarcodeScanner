@@ -50,23 +50,23 @@ public class RangeView extends View implements View.OnTouchListener {
         scaleGestur = new ScaleGestureDetector(context,scaleGestureDetector);
     }
 
-    @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-        //Log.e(TAG, "onDraw");
-        Paint paint = new Paint();
-        rect.top = 10;
-        rect.left = 10;
-        rect.bottom = 100;
-        rect.right = 100;
-
-        paint.setColor(Color.YELLOW);
-        //paint.setStyle(Paint.Style.STROKE);
-        canvas.drawRect(rect,paint);
-        paint.setColor(Color.BLUE);
-        canvas.drawText("hello",10,10,paint);
-        //invalidate();
-    }
+//    @Override
+//    protected void onDraw(Canvas canvas) {
+//        super.onDraw(canvas);
+//        //Log.e(TAG, "onDraw");
+////        Paint paint = new Paint();
+////        rect.top = 10;
+////        rect.left = 10;
+////        rect.bottom = 100;
+////        rect.right = 100;
+////
+////        paint.setColor(Color.YELLOW);
+////        paint.setStyle(Paint.Style.STROKE);
+////        canvas.drawRect(rect,paint);
+////        paint.setColor(Color.BLUE);
+////        canvas.drawText("hello",10,10,paint);
+//        //invalidate();
+//    }
     float x1,y1,x2,y2;
     @Override
     public boolean onTouch(View v, MotionEvent event) {

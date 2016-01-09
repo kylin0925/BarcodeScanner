@@ -1,12 +1,19 @@
 package util.camera;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.hardware.Camera;
 import android.os.Environment;
 import android.os.Message;
 import android.util.Log;
+import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.google.zxing.BinaryBitmap;
@@ -25,6 +32,8 @@ import java.net.Socket;
 
 import android.os.Handler;
 
+import barcode.ky.barcodescanner.RangeView;
+
 /**
  * Created by kylin25 on 2015/8/23.
  */
@@ -33,6 +42,8 @@ public class PreviewCallback implements Camera.PreviewCallback {
     Handler mHandler;
     Rect mRect;
     Point mPreivewSize;
+    String TAG = "PreviewCallback";
+    RangeView custview;
     public void setContext(Context context) {
         mContext = context;
     }
@@ -45,6 +56,7 @@ public class PreviewCallback implements Camera.PreviewCallback {
     public void setPreviewSize(Point p){
         mPreivewSize = p;
     }
+    public void setRangeView(RangeView r) {custview = r;}
     private void dumpPreview(byte[] data){
         String filename = Environment.getExternalStorageDirectory() + "/code/dump.yuv";
         try {
@@ -69,10 +81,14 @@ public class PreviewCallback implements Camera.PreviewCallback {
         //  Log.e("barcode","decode");
         Result rawResult = null;
         MultiFormatReader multiFormatReader = new MultiFormatReader();
+        Log.e(TAG, "decode " + mRect.left);
         PlanarYUVLuminanceSource source = new PlanarYUVLuminanceSource(data, width, height, mRect.left, mRect.top,
-                mRect.right, mRect.bottom, false);
+                mRect.width(), mRect.height(), false);
         if (source != null) {
+
+
             BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
+
             try {
                 //Log.e("PreviewCallback","multiFormatReader.decodeWithState(bitmap) ");
                 rawResult = multiFormatReader.decodeWithState(bitmap);
@@ -82,9 +98,32 @@ public class PreviewCallback implements Camera.PreviewCallback {
             } finally {
                 multiFormatReader.reset();
             }
+
+
         }
         //Log.e("PreviewCallback","rawResult");
         if (rawResult != null) {
+            //if(t == null)
+            {
+                int[] pixels = source.renderThumbnail();
+                int widthb = source.getThumbnailWidth();
+                int heightb = source.getThumbnailHeight();
+                Matrix matrix = new Matrix();
+                matrix.postRotate(180);
+                Bitmap bitmap1 = Bitmap.createBitmap(pixels, 0 , widthb,widthb, heightb, Bitmap.Config.ARGB_8888);
+                Bitmap bitmap2 = Bitmap.createBitmap(bitmap1, 0 , 0,widthb, heightb,matrix,true);
+                Bitmap mutablebitmap = bitmap2.copy(Bitmap.Config.ARGB_8888,true);
+
+                //Canvas canvas = new Canvas(mutablebitmap);
+
+
+                //custview.draw(canvas);
+                //custview.invalidate();
+                Drawable drawable = new BitmapDrawable(mutablebitmap);
+                custview.setBackground(drawable);
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(widthb,heightb);
+                custview.setLayoutParams(params);
+            }
             //Log.e("PreviewCallback", " " + rawResult);
             if (t != null) {
                 t.cancel();
@@ -96,6 +135,8 @@ public class PreviewCallback implements Camera.PreviewCallback {
             message.obj = rawResult.toString();
             mHandler.sendMessage(message);
             //sentBarcode(rawResult.toString());
+
+
         }
 
     }
