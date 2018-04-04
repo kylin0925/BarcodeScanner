@@ -69,11 +69,14 @@ public class MainActivity extends AppCompatActivity {
             else if(msg.arg1 == 888){
                 Bundle bundle = msg.getData();
                 byte[] bytes = bundle.getByteArray("barcode_bitmap");
-               // Log.e(TAG,"888 " + bytes );
+                Log.e(TAG,"888 " + bytes);
                 if(bytes!=null){
                     Bitmap bitmap = BitmapFactory.decodeByteArray(bytes,0,bytes.length,null);
                     bitmap = bitmap.copy(Bitmap.Config.ARGB_8888,true);
                     imageView.setImageBitmap(bitmap);
+                    imageView.setVisibility(View.VISIBLE);
+                }else {
+                    imageView.setVisibility(View.GONE);
                 }
 
             }
@@ -150,6 +153,7 @@ public class MainActivity extends AppCompatActivity {
 
                 oldbarcode = "";
                 cameraSurfacePreview.startPreview();
+                rangeView.setVisibility(View.GONE);
             }
         });
 

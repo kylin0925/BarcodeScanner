@@ -92,7 +92,7 @@ public class PreviewCallback implements Camera.PreviewCallback {
         PlanarYUVLuminanceSource source = new PlanarYUVLuminanceSource(data, width, height, mRect.left, mRect.top,
                 mRect.right, mRect.bottom, false);
 
-        bundleThumbnail(source,new Bundle());
+        //bundleThumbnail(source,new Bundle());
         if (source != null) {
 
 
@@ -132,6 +132,7 @@ public class PreviewCallback implements Camera.PreviewCallback {
                 custview.setBackground(drawable);
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(widthb, heightb);
                 custview.setLayoutParams(params);
+                custview.setVisibility(View.VISIBLE);
             }
             if (rawResult != null && isScanned == false) {
                 isScanned = true;
@@ -141,7 +142,7 @@ public class PreviewCallback implements Camera.PreviewCallback {
                 }
                 t = Toast.makeText(mContext, "barcode " + rawResult, Toast.LENGTH_SHORT);
                 t.show();
-                bundleThumbnail(source, new Bundle());
+                //bundleThumbnail(source, new Bundle());
                 Message message = new Message();
                 message.arg1 = 123;
                 message.obj = rawResult.toString();

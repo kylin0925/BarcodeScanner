@@ -29,8 +29,8 @@ public class RangeView extends View implements View.OnTouchListener {
     public RangeView(Context context) {
         super(context);
 
-        rect.top = 10;
-        rect.left = 10;
+        rect.top = 0;
+        rect.left = 0;
         rect.bottom = 100;
         rect.right = 100;
         this.setOnTouchListener(this);
