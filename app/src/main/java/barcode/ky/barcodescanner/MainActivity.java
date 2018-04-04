@@ -3,8 +3,11 @@ package barcode.ky.barcodescanner;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.hardware.Camera;
+import android.media.Image;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -18,12 +21,17 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.net.Socket;
 
 public class MainActivity extends AppCompatActivity {
@@ -33,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
     String oldbarcode="";
     Button btnConnect;
     Button btnDisconnect;
+    ImageView imageView;
     Camera camera;
     CameraSurfacePreview cameraSurfacePreview;
     SharedPreferences sharedPreferences;
@@ -41,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
     String dstAddress = "192.168.1.107";
     int dstPort = 9999;
     RangeView rangeView;
+    Bitmap bitmap;
     Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -53,8 +63,21 @@ public class MainActivity extends AppCompatActivity {
                     sentBarcode(msg.obj.toString());
                     oldbarcode = msg.obj.toString();
                     cameraSurfacePreview.stopPreview();
+                    sentBarcodeBrocast(msg.obj.toString());
                 }
-            }else if(msg.arg1 == 1 || msg.arg1 == 2){
+            }
+            else if(msg.arg1 == 888){
+                Bundle bundle = msg.getData();
+                byte[] bytes = bundle.getByteArray("barcode_bitmap");
+               // Log.e(TAG,"888 " + bytes );
+                if(bytes!=null){
+                    Bitmap bitmap = BitmapFactory.decodeByteArray(bytes,0,bytes.length,null);
+                    bitmap = bitmap.copy(Bitmap.Config.ARGB_8888,true);
+                    imageView.setImageBitmap(bitmap);
+                }
+
+            }
+            else if(msg.arg1 == 1 || msg.arg1 == 2){
                 btnConnect.setText(msg.obj.toString());
             }
 
@@ -114,6 +137,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         cameraSurfacePreview = (CameraSurfacePreview)findViewById(R.id.surfaceView);
+        android.widget.LinearLayout.LayoutParams params = new android.widget.LinearLayout.LayoutParams(CameraSurfacePreview.width, CameraSurfacePreview.height);
+        cameraSurfacePreview.setLayoutParams(params);
         cameraSurfacePreview.setHandler(handler);
 
         txtBarcode = (TextView)findViewById(R.id.txtBarcode);
@@ -156,6 +181,14 @@ public class MainActivity extends AppCompatActivity {
         Log.e(TAG, "size " + point);
         rangeView = (RangeView)findViewById(R.id.rangeView);
         cameraSurfacePreview.setRangeView(rangeView);
+        imageView = (ImageView)findViewById(R.id.imgbarcode);
+        Camera.CameraInfo info = new Camera.CameraInfo();
+        Log.e(TAG,"facing " + info.facing + " " + info.orientation);
+
+        int rotation = this.getWindowManager().getDefaultDisplay()
+                .getRotation();
+
+        Log.e(TAG,"rotation " + rotation);
     }
 
     @Override
@@ -183,6 +216,27 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    void sentBarcodeBrocast(final String barcode){
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try
+
+                {
+                    DatagramSocket socket = new DatagramSocket(5555, InetAddress.getByName("0.0.0.0"));
+                    socket.setBroadcast(true);
+                    byte[] bytes = barcode.getBytes();
+                    DatagramPacket datagramPacket = new DatagramPacket(bytes, bytes.length, InetAddress.getByName("255.255.255.255"), 5555);
+                    Log.e(TAG,"send to pc");
+                    socket.send(datagramPacket);
+                    socket.close();
+                } catch (Exception ex){
+                    Log.e(TAG, "error " + ex.toString());
+                }
+            }
+        });
+        thread.start();
+    }
 
     void sentBarcode(final String barcode){
         if(socket == null || socket.isConnected() == false) {

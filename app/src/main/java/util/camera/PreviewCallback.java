@@ -9,6 +9,8 @@ import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.hardware.Camera;
+import android.nfc.Tag;
+import android.os.Bundle;
 import android.os.Environment;
 import android.os.Message;
 import android.util.Log;
@@ -44,6 +46,8 @@ public class PreviewCallback implements Camera.PreviewCallback {
     Point mPreivewSize;
     String TAG = "PreviewCallback";
     RangeView custview;
+    public static Bitmap bitmap = null;
+    boolean isScanned = false;
     public void setContext(Context context) {
         mContext = context;
     }
@@ -52,6 +56,9 @@ public class PreviewCallback implements Camera.PreviewCallback {
     }
     public void setRect(Rect rect) {
         mRect = rect;
+    }
+    public void setFlag(boolean flag) {
+        isScanned = flag;
     }
     public void setPreviewSize(Point p){
         mPreivewSize = p;
@@ -83,7 +90,9 @@ public class PreviewCallback implements Camera.PreviewCallback {
         MultiFormatReader multiFormatReader = new MultiFormatReader();
         Log.e(TAG, "decode " + mRect.left);
         PlanarYUVLuminanceSource source = new PlanarYUVLuminanceSource(data, width, height, mRect.left, mRect.top,
-                mRect.width(), mRect.height(), false);
+                mRect.right, mRect.bottom, false);
+
+        bundleThumbnail(source,new Bundle());
         if (source != null) {
 
 
@@ -110,9 +119,9 @@ public class PreviewCallback implements Camera.PreviewCallback {
                 int heightb = source.getThumbnailHeight();
                 Matrix matrix = new Matrix();
                 matrix.postRotate(180);
-                Bitmap bitmap1 = Bitmap.createBitmap(pixels, 0 , widthb,widthb, heightb, Bitmap.Config.ARGB_8888);
-                Bitmap bitmap2 = Bitmap.createBitmap(bitmap1, 0 , 0,widthb, heightb,matrix,true);
-                Bitmap mutablebitmap = bitmap2.copy(Bitmap.Config.ARGB_8888,true);
+                Bitmap bitmap1 = Bitmap.createBitmap(pixels, 0, widthb, widthb, heightb, Bitmap.Config.ARGB_8888);
+                Bitmap bitmap2 = Bitmap.createBitmap(bitmap1, 0, 0, widthb, heightb, matrix, true);
+                Bitmap mutablebitmap = bitmap2.copy(Bitmap.Config.ARGB_8888, true);
 
                 //Canvas canvas = new Canvas(mutablebitmap);
 
@@ -121,24 +130,42 @@ public class PreviewCallback implements Camera.PreviewCallback {
                 //custview.invalidate();
                 Drawable drawable = new BitmapDrawable(mutablebitmap);
                 custview.setBackground(drawable);
-                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(widthb,heightb);
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(widthb, heightb);
                 custview.setLayoutParams(params);
             }
-            //Log.e("PreviewCallback", " " + rawResult);
-            if (t != null) {
-                t.cancel();
+            if (rawResult != null && isScanned == false) {
+                isScanned = true;
+                //Log.e("PreviewCallback", " " + rawResult);
+                if (t != null) {
+                    t.cancel();
+                }
+                t = Toast.makeText(mContext, "barcode " + rawResult, Toast.LENGTH_SHORT);
+                t.show();
+                bundleThumbnail(source, new Bundle());
+                Message message = new Message();
+                message.arg1 = 123;
+                message.obj = rawResult.toString();
+                mHandler.sendMessage(message);
+                //sentBarcode(rawResult.toString());
+
+
             }
-            t = Toast.makeText(mContext, "barcode " + rawResult, Toast.LENGTH_SHORT);
-            t.show();
-            Message message = new Message();
-            message.arg1 = 123;
-            message.obj = rawResult.toString();
-            mHandler.sendMessage(message);
-            //sentBarcode(rawResult.toString());
-
-
         }
-
+    }
+    private void bundleThumbnail(PlanarYUVLuminanceSource source, Bundle bundle) {
+        int[] pixels = source.renderThumbnail();
+        int width = source.getThumbnailWidth();
+        int height = source.getThumbnailHeight();
+        Bitmap bitmap = Bitmap.createBitmap(pixels, 0, width, width, height, Bitmap.Config.ARGB_8888);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 50, out);
+        bundle.putByteArray("barcode_bitmap", out.toByteArray());
+        bundle.putFloat("barcode_scaled_factor", (float) width / source.getWidth());
+       // Log.e("Previewcallback","bundleThumbnail");
+        Message message = new Message();
+        message.arg1 = 888;
+        message.setData(bundle);
+        mHandler.sendMessage(message);
     }
 
 }

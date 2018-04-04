@@ -16,7 +16,9 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.hardware.Camera;
+import android.os.Bundle;
 import android.os.Environment;
+import android.os.Message;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -47,14 +49,14 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
     private int angle;
     Context mContex;
     Handler mHandler;
-
-    PreviewCallback previewCallback = new PreviewCallback();
-    int width = 1280;
-    int height = 720;
-    int scan_width = 300;
-    int scan_height = 200;
     int radius = 25;
     ScaleGestureDetector scaleGestur;
+    PreviewCallback previewCallback = new PreviewCallback();
+    public static int width = 1920;
+    public static int height = 1080;
+    int scan_width = width/2;
+    int scan_height = height/2;
+
     Rect rect = new Rect();
     RangeView custview;
     public Camera getCamera(){
@@ -64,6 +66,7 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
         mCamera.stopPreview();
     }
     public void startPreview(){
+        previewCallback.setFlag(false);
         mCamera.setPreviewCallback(previewCallback);
         mCamera.startPreview();
     }
@@ -115,21 +118,20 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
         Camera.Parameters parameters = mCamera.getParameters();
         Camera.Size preSize = parameters.getPreviewSize();
 
-        int h = preSize.height;
-        int w = preSize.width;
-        Log.e(TAG, "h " + h + " w " + w);
+        //height = preSize.height;
+        //width = preSize.width;
 
-        Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
-        Camera.getCameraInfo(0,cameraInfo);
-        Log.i(TAG, "cameraInfo.orientation  " + cameraInfo.orientation);
-
+        scan_width = width/2;
+        scan_height = height/2;
+        Log.e(TAG, "h " + height + " w " + width);
         parameters.setPreviewSize(width, height);
+        //parameters.setRotation(0);
         mCamera.setParameters(parameters);
-        mCamera.setDisplayOrientation(cameraInfo.orientation - 90);
+
         try{
             //mCamera.setPreviewTexture(surfaceTexture);
             setWillNotDraw(false);
-           // mCamera.setDisplayOrientation(90);
+           // mCamera.setDisplayOrientation(0);
             mCamera.setPreviewDisplay(mHolder);
             Camera.Parameters parameters1 = mCamera.getParameters();
             parameters1.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
@@ -198,12 +200,11 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
         paint.setColor(Color.YELLOW);
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawRect(rect, paint);
-        paint.setStyle(Paint.Style.FILL);
-        paint.setColor(Color.BLUE);
-        canvas.drawCircle(rect.left,rect.top, radius,paint);
-        canvas.drawCircle(rect.right,rect.bottom,radius,paint);
 
-
+//        if(PreviewCallback.bitmap!=null){
+//            canvas.drawBitmap(PreviewCallback.bitmap,0,0,new Paint());
+//        }
+        canvas.drawRect(rect,paint);
         invalidate();
     }
     public void setLineAngle(int angle){
@@ -316,4 +317,6 @@ public class CameraSurfacePreview extends SurfaceView implements SurfaceHolder.C
         }
 
     };
+
+
 }

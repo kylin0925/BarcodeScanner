@@ -33,6 +33,12 @@
             android:layout_height="400px"
             android:id="@+id/rangeView"
             android:background="#00ffbd8c" />
+        <ImageView android:id="@+id/imgbarcode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+
+            />
         <TextView android:text="IP" android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/txtIp"
